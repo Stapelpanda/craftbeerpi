@@ -10,6 +10,11 @@ function BaseController($scope, CBPConfig, CBPKettle, CBPHardware, CBPSteps) {
         $scope.activeKettle = $scope.steps.find(findActive) || undefined
     });
 
+    $scope.$on('socket:buzzer', function (ev, data) {
+        var audio = new Audio('audio/song.mp3');
+        audio.play();
+    });
+
     // Basic Data
     $scope.thermometer = [];
     $scope.thermometer.push({

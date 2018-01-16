@@ -1,31 +1,25 @@
-from brewapp import app
+from brewapp import app, socketio
 from views import base
 from util import *
 import time
 from thread import start_new_thread
 
-
 try:
-    import RPi.GPIO as GPIO
-    app.logger.info("SETUP GPIO Module for Buzzer")
+    from CHIP_IO import GPIO
+    app.logger.info("SETUP GPIO Module Loaded")
 except Exception as e:
-    app.logger.error("SETUP GPIO Module for Buzzer Failed " + str(e))
-    pass
-
+    app.logger.error("SETUP GPIO Module " + str(e))
 
 ###
 @brewinit()
 def initBuzzer():
 
-
     buzzer_gpio = app.brewapp_config.get("BUZZER_GPIO", None)
     app.logger.info("BUZZER GPIO: " + str(buzzer_gpio) )
     try:
         if buzzer_gpio is not None:
-            buzzer_gpio = int(buzzer_gpio)
-        GPIO.setmode(GPIO.BCM)
-        #GPIO.setup(buzzer_gpio, GPIO.IN)
-        GPIO.setup(buzzer_gpio, GPIO.OUT)
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(buzzer_gpio, GPIO.OUT)
 
     except Exception as e:
         app.logger.error(e)
@@ -51,7 +45,7 @@ sound3 = ["H",0.1,"L",0.1,"H",0.1,"L",0.1,"H",0.1,"L"]
 
 ## Logic to play the sound melodie
 def playSound(melodie):
-
+    socketio.emit('beep', {"melodie": melodie}, namespace='/brew')
     try:
         buzzer_gpio = app.brewapp_config.get("BUZZER_GPIO", None)
         if(buzzer_gpio == None):
