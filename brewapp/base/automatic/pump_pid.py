@@ -1,7 +1,7 @@
 import time
 from automaticlogic import *
 from brewapp import app, socketio
-
+import pprint
 
 class PID(object):
     ek_1 = 0.0
@@ -57,25 +57,23 @@ class PID(object):
 class PumpPIDLogic(Automatic):
 
     configparameter = [
-    {"name": "P", "value": 44},
-    {"name": "I", "value": 165},
-    {"name": "D", "value": 4},
-    {"name": "PumpWait", "value": 4}
+      {"name": "wait_time", "value":5},
+      {"name": "P", "value": 44},
+      {"name": "I", "value": 165},
+      {"name": "D", "value": 4},
+      {"name": "PumpWait", "value": 4}
     ]
 
     def run(self):
         sampleTime = 5
-        pumpRunning = False
-        heaterOn = False
-        heaterLastOff = 0
 
-        agitatorName = app.brewapp_kettle_state[self.kid]["agitator"]
+        agitatorName = int(app.brewapp_kettle_state[self.kid]["agitator"])
 
-        wait_time = float(self.config["wait_time"])
         p = float(self.config["P"])
         i = float(self.config["I"])
         d = float(self.config["D"])
         pumpWait = float(self.config["PumpWait"])
+	wait_time = float(self.config["wait_time"])
 
         pid = PID(wait_time, p, i, d)
 
@@ -84,32 +82,23 @@ class PumpPIDLogic(Automatic):
             heating_time = sampleTime * heat_percent / 100
             wait_time = sampleTime - heating_time
 
+            print 'PID Controller: {} %, heating: {} waiting: {}'.format(heat_percent, heating_time, wait_time)
+            # Check if we need heating
             if(heating_time > 0.1):
                 # If not already running, start pump and wait 1 round (5 Seconds)
-                if(app.brewapp_switch_state[agitatorName] == False and pumpRunning == False):
-                    pumpRunning = True
+                if(app.brewapp_switch_state[agitatorName] == False):
                     switchOn(agitatorName)
                     socketio.sleep(sampleTime)
+                    continue
                 else:
-                    if(heaterOn == False):
-                        heaterOn = True
-                        self.switchHeaterON()
-                        heaterLastOff = 0
+  	            # Pump running, lets heat 
+                    self.switchHeaterON()
 
-                    socketio.sleep(heating_time)
-                    
-                    if(wait_time > 0.1):
-                        heaterOn = False
-                        self.switchHeaterOFF()
-                        heaterLastOff = time.time()
-                        socketio.sleep(wait_time)
-                    else:
-                        if(heaterOn == True):
-                            heaterOn = False
-                            self.switchHeaterOFF()
-                            heaterLastOff = time.time()
+            # Sleepy time
+            socketio.sleep(heating_time)
+            # Check if we need to switch off Heating (only if we need more than 100ms of sleep)
+            if(wait_time > 0.1):
+               self.switchHeaterOFF()
 
-                    if(pumpRunning and heaterLastOff != 0 and (time.time() - heaterLastOff) > pumpWait):
-                        if(app.brewapp_switch_state[agitatorName] == False):
-                            pumpRunning = False
-                            switchOff(agitatorName)
+            # Sleepy time
+            socketio.sleep(wait_time)

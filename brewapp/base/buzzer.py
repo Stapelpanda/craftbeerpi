@@ -6,7 +6,7 @@ from thread import start_new_thread
 
 
 try:
-    import RPi.GPIO as GPIO
+    from CHIP_IO import GPIO
     app.logger.info("SETUP GPIO Module for Buzzer")
 except Exception as e:
     app.logger.error("SETUP GPIO Module for Buzzer Failed " + str(e))
@@ -16,16 +16,11 @@ except Exception as e:
 ###
 @brewinit()
 def initBuzzer():
-
-
     buzzer_gpio = app.brewapp_config.get("BUZZER_GPIO", None)
     app.logger.info("BUZZER GPIO: " + str(buzzer_gpio) )
     try:
         if buzzer_gpio is not None:
-            buzzer_gpio = int(buzzer_gpio)
-        GPIO.setmode(GPIO.BCM)
-        #GPIO.setup(buzzer_gpio, GPIO.IN)
-        GPIO.setup(buzzer_gpio, GPIO.OUT)
+            GPIO.setup(buzzer_gpio, GPIO.OUT)
 
     except Exception as e:
         app.logger.error(e)
@@ -59,15 +54,11 @@ def playSound(melodie):
         for i in melodie:
             if(isinstance(i, str)):
                 if i == "H":
-                    GPIO.output(int(buzzer_gpio),GPIO.HIGH)
+                    GPIO.output(buzzer_gpio,GPIO.HIGH)
                 else:
-                    GPIO.output(int(buzzer_gpio),GPIO.LOW)
+                    GPIO.output(buzzer_gpio,GPIO.LOW)
             else:
                 time.sleep(i)
 
     except Exception as e:
-
         app.logger.error("BUZZER ERROR " + str(e))
-
-
-
