@@ -11,7 +11,7 @@ function BaseController($scope, CBPConfig, CBPKettle, CBPHardware, CBPSteps) {
     });
 
     $scope.$on('socket:beep', function (ev, data) {
-        var audio = new Audio('audio/song.mp3');
+        var audio = new Audio('static/audio/audio1.mp3');
         audio.play();
     });
 
