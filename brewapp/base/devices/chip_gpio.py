@@ -49,7 +49,7 @@ class BrewGPIO(ActorBase):
             app.logger.error("CLEAN UP OF GPIO FAILD " + str(e))
 
     def getDevices(self):
-        return ['U13_{}'.format(u) for u in range(19, 35)]
+        return ['XIO-P{}'.format(u) for u in range(0, 7)]
 
     def switchON(self, device):
         app.logger.info("GPIO ON" + str(device))
