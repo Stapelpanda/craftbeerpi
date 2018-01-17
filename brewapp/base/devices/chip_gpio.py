@@ -24,6 +24,7 @@ class BrewGPIO(ActorBase):
                     continue
 
                 app.logger.info("SETUP HARDWARE: " + str(h) + " GPIO: " + str(g))
+                GPIO.cleanup(g)
                 GPIO.setup(g, GPIO.OUT)
 
                 if self.getConfigValue(h, "inverted", False):
