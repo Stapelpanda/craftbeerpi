@@ -6,6 +6,8 @@ from automaticlogic import *
 
 @brewautomatic()
 class PIDArduinoLogic(Automatic):
+    MIN_HEATING_TIME = 0.1
+
     KEY_P = "P"
     KEY_I = "I"
     KEY_D = "D"
@@ -30,9 +32,11 @@ class PIDArduinoLogic(Automatic):
             heat_percent = pid.calc(self.getCurrentTemp(), self.getTargetTemp())
             heating_time = sampleTime * heat_percent / 100
             wait_time = sampleTime - heating_time
-            self.switchHeaterON()
+            if heating_time > self.MIN_HEATING_TIME:
+                self.switchHeaterON()
             socketio.sleep(heating_time)
-            self.switchHeaterOFF()
+            if wait_time > self.MIN_HEATING_TIME:
+                self.switchHeaterOFF()
             socketio.sleep(wait_time)
 
 

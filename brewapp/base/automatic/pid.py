@@ -55,6 +55,7 @@ class PID(object):
 
 @brewautomatic()
 class PIDLogic(Automatic):
+    MIN_HEATING_TIME = 0.1
 
     configparameter = [
     {"name":"P", "value":44},
@@ -74,7 +75,9 @@ class PIDLogic(Automatic):
             heat_percent = pid.calc(self.getCurrentTemp(), self.getTargetTemp())
             heating_time = sampleTime * heat_percent / 100
             wait_time = sampleTime - heating_time
-            self.switchHeaterON()
+            if heating_time > self.MIN_HEATING_TIME:
+                self.switchHeaterON()
             socketio.sleep(heating_time)
-            self.switchHeaterOFF()
+            if wait_time > self.MIN_HEATING_TIME:
+                self.switchHeaterOFF()
             socketio.sleep(wait_time)

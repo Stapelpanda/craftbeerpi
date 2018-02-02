@@ -10,6 +10,8 @@ from automaticlogic import *
 
 @brewautomatic()
 class PIDAutotuneLogic(Automatic):
+    MIN_HEATING_TIME = 0.1
+
     KEY_OUTSTEP = "output step %"
     KEY_MAXOUT = "max. output %"
     KEY_LOOKBACK = "lookback seconds"
@@ -32,9 +34,11 @@ class PIDAutotuneLogic(Automatic):
             heat_percent = atune.output
             heating_time = sampleTime * heat_percent / 100
             wait_time = sampleTime - heating_time
-            self.switchHeaterON()
+            if heating_time > self.MIN_HEATING_TIME:
+                self.switchHeaterON()
             socketio.sleep(heating_time)
-            self.switchHeaterOFF()
+            if wait_time > self.MIN_HEATING_TIME:
+                self.switchHeaterOFF()
             socketio.sleep(wait_time)
 
         app.brewapp_kettle_state[self.kid]["automatic"] = False
